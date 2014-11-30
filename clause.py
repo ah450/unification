@@ -243,7 +243,7 @@ def standarize_apart(node):
             logging.info("Will replace var {0} with {1}".format(t.name, subst[t.name]))
             t.name = subst[t.name]
         rename_vars(node.lhs, subst)
-    elif isinstance(node, Node):
+    if isinstance(node, Node):
         if node.lhs is not None:
             standarize_apart(node.lhs)    
         if node.rhs is not None:
@@ -394,7 +394,6 @@ def clause_form(in_string, trace=False):
         push_negation(tree.root, tree)
         logging.info("Standarize Apart")
         standarize_apart(tree.root)
-        print color_brackets(str(tree.root))
         logging.info("Skolemizing")
         skolemize(tree.root, set(), dict(), tree)
         logging.info("Discarding ForAll quantifiers")
@@ -409,9 +408,9 @@ def clause_form(in_string, trace=False):
 if __name__ == '__main__':
     # ∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]
     init(autoreset=True)
-    # test_1 = u'∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]'
-    # print 'Running test case one'
-    # print color_brackets(str(clause_form(test_1, False)))
+    test_1 = u'∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]'
+    print 'Running test case one'
+    print color_brackets(str(clause_form(test_1, False)))
     test_2 =  u'∀x[P (x) ⇔ (Q(x) ∧ ∃y[Q(y) ∧ R(y, x))]]'
     print 'Running test case two'
     print color_brackets(str(clause_form(test_2, True)))
