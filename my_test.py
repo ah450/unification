@@ -35,10 +35,11 @@ p2 = mt.Expr(mt.ET.prd, 'P', [fu, v, v])
 # example b
 p1 = mt.Expr(mt.ET.prd, 'P', [a, y, fy])
 p2 = mt.Expr(mt.ET.prd, 'P', [z, z, u])
+
 #print(mu.unify(p1, p2))
 
 # example c
 
 p1 = mt.Expr(mt.ET.prd, 'P', [x, gx, x])
 p2 = mt.Expr(mt.ET.prd, 'P', [gu, ggz, z])
-print(mu.unify(p1, p2))
+print(mu.unify(p1, p2,True))

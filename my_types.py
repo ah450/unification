@@ -57,7 +57,6 @@ def subst(subs, e):
 	return e
 
 def subst1(sub, e):
-	print('sub '+ str(sub) + ' in '+ str(e))
 	if type(e) == Expr:
 		if e.type == ET.var and e == sub.name:
 			e = sub.value
