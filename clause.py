@@ -318,6 +318,21 @@ def skolemize(node, dependencies, subst, tree):
             skolemize(node.rhs, dependencies, subst, tree)
 
 
+def discard_for_all(node, tree):
+    if isinstance(node, ForAll):
+        if node.parent is not None:
+            replace_node(node, node.lhs)
+        else:
+            node.lhs.parent = None
+            tree.root = node.lhs
+        discard_for_all(node.lhs, tree)
+    elif isinstance(node, Node):
+        if node.lhs is not None:
+            discard_for_all(node.lhs, tree)
+        if node.rhs is not None:
+            discard_for_all(node.rhs, tree)
+
+
 def clause_form(in_string, trace=False):
     parser = Parser()
     parser.build()
@@ -336,6 +351,8 @@ def clause_form(in_string, trace=False):
         standarize_apart(tree.root)
         logging.info("Skolemizing")
         skolemize(tree.root, set(), dict(), tree)
+        logging.info("Discarding ForAll quantifiers")
+        discard_for_all(tree.root, tree)
         return tree.root
     
 
