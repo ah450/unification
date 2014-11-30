@@ -223,7 +223,8 @@ def standarize_apart(node):
     if isinstance(node, Quantifier):
         subst = {}
         for name in [t.name for t in node.var_list]:
-            subst[name] = name
+            subst[name] = enumerator.get_token()
+            logging.info("Will replace var {0} with {1}".format(name, subst[name]))
         rename_vars(node.lhs, subst)
     elif isinstance(node, Node):
         if node.lhs is not None:
@@ -394,9 +395,9 @@ def color_brackets(text):
 if __name__ == '__main__':
     # ∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]
     init(autoreset=True)
-    test_1 = u'∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]'
-    print 'Running test case one'
-    print color_brackets(str(clause_form(test_1, False)))
+    # test_1 = u'∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]'
+    # print 'Running test case one'
+    # print color_brackets(str(clause_form(test_1, False)))
     test_2 =  u'∀x[P (x) ⇔ (Q(x) ∧ ∃y[Q(y) ∧ R(y, x))]]'
     print 'Running test case two'
-    print color_brackets(str(clause_form(test_2, False)))
+    print color_brackets(str(clause_form(test_2, True)))
