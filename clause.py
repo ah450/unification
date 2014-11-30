@@ -394,6 +394,7 @@ def clause_form(in_string, trace=False):
         push_negation(tree.root, tree)
         logging.info("Standarize Apart")
         standarize_apart(tree.root)
+        print color_brackets(str(tree.root))
         logging.info("Skolemizing")
         skolemize(tree.root, set(), dict(), tree)
         logging.info("Discarding ForAll quantifiers")
