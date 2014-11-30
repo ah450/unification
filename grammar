@@ -1,0 +1,15 @@
+start -> atom
+start -> start BINARY_OP start
+start -> start BINARY_OP LB start RB
+start -> UNARY_OP start
+start -> quantifier LB start RB
+term -> VAR_OR_FUNC LB term_list RB
+term -> VAR_OR_FUNC
+term_list -> term_list term
+term_list -> term
+predicate -> PREDICATE LB term_list RB
+atom -> predicate
+quantifier -> FOR_ALL var_list
+quantifier -> EXISTS var_list
+var_list -> var_list VAR_OR_FUNC
+var_list -> VAR_OR_FUNC
