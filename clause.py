@@ -346,8 +346,13 @@ def clause_form(in_string, trace=False):
     tree = Tree(parser.parse(in_string))
     print tree.root
     if trace:
+        [h_weak_ref().flush() for h_weak_ref in logging._handlerList]
         logging.getLogger().setLevel(logging.INFO)
+    else:
+        [h_weak_ref().flush() for h_weak_ref in logging._handlerList]
+        logging.getLogger().setLevel(logging.ERROR)
     if tree is not None:
+        
         logging.info("Eliminating equivalence")
         equiv_elimination(tree.root, tree)
         logging.info("Eliminating implication")
@@ -391,7 +396,7 @@ if __name__ == '__main__':
     init(autoreset=True)
     test_1 = u'∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]'
     print 'Running test case one'
-    print color_brackets(str(clause_form(test_1)))
+    print color_brackets(str(clause_form(test_1, True)))
     test_2 =  u'∀x[P (x) ⇔ (Q(x) ∧ ∃y[Q(y) ∧ R(y, x))]]'
     print 'Running test case two'
-    print color_brackets(str(clause_form(test_2, True)))
+    print color_brackets(str(clause_form(test_2, False)))
