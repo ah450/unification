@@ -19,15 +19,10 @@ class Node(EqualityMixin):
     def __str__(self):
         return unicode(self).encode('utf-8')
 
-
-class Not(Node):
-    """Apply not operator"""
-    def __init__(self, form):
-        super(Not, self).__init__(form, None)
-
-    def __unicode__(self):
-        return u'\u00AC( {0} )'.format(self.lhs)
-
+class Quantifier(Node):
+    def __init__(self, var_list, form):
+        super(Quantifier, self).__init__(form, None)
+        self.var_list = var_list
 
 
 class And(Node):
@@ -35,12 +30,25 @@ class And(Node):
         super(And, self).__init__(lhs, rhs)
 
     def __unicode__(self):
-        return u'({0}) \u2227 ({1})'.format(self.lhs, self.rhs)
+        if (isinstance(self.lhs, Node) and isinstance(self.rhs, Node) and
+            not (isinstance(self.lhs, Quantifier) or isinstance(self.rhs, Quantifier))):
+            return u'({0}) \u2227 ({1})'.format(self.lhs, self.rhs)
+        else:
+            return u'{0} \u2227 {1}'.format(self.lhs, self.rhs)
 
-class Quantifier(Node):
-    def __init__(self, var_list, form):
-        super(Quantifier, self).__init__(form, None)
-        self.var_list = var_list
+
+
+
+class Not(Node):
+    """Apply not operator"""
+    def __init__(self, form):
+        super(Not, self).__init__(form, None)
+
+    def __unicode__(self):
+        if isinstance(self.lhs, Node) and not isinstance(self.lhs, Quantifier):
+            return u'\u00AC( {0} )'.format(self.lhs)
+        else:
+            return u'\u00AC{0}'.format(self.lhs)
 
 
 class ForAll(Quantifier):

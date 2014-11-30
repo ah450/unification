@@ -396,7 +396,7 @@ if __name__ == '__main__':
     init(autoreset=True)
     test_1 = u'∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]'
     print 'Running test case one'
-    print color_brackets(str(clause_form(test_1, True)))
+    print color_brackets(str(clause_form(test_1, False)))
     test_2 =  u'∀x[P (x) ⇔ (Q(x) ∧ ∃y[Q(y) ∧ R(y, x))]]'
     print 'Running test case two'
     print color_brackets(str(clause_form(test_2, False)))
