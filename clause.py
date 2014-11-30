@@ -309,7 +309,8 @@ def distribute(node, tree, transform_and):
             else:
                 replace_node(node, new_node)
             node = new_node
-        elif isinstance(node.lhs, And) and transform_and:
+            distribute(node, tree, transform_and)
+        elif isinstance(node.lhs, And):
             and_node = node.lhs
             lhs = Or(node.rhs, and_node.lhs)
             make_parent_of_children(lhs)
@@ -329,7 +330,7 @@ def distribute(node, tree, transform_and):
                 distribute(node.lhs, tree, transform_and)
             if node.rhs is not None:
                 distribute(node.rhs, tree, transform_and)
-    elif isinstance(node, And):
+    elif isinstance(node, And) and transform_and:
         if isinstance(node.rhs, Or):
             or_node = node.rhs
             lhs = And(node.lhs, or_node.lhs)
@@ -344,6 +345,7 @@ def distribute(node, tree, transform_and):
             else:
                 replace_node(node, new_node)
             node = new_node
+            distribute(node, tree, transform_and)
         elif isinstance(node.lhs, Or):
             or_node = node.lhs
             lhs = And(node.rhs, or_node.lhs)
@@ -399,7 +401,7 @@ def clause_form(in_string, trace=False):
         logging.info("Discarding ForAll quantifiers")
         discard_for_all(tree.root, tree)
         logging.info("Distributing ands and ors")
-        distribute(tree.root, tree, transform_and=True)
+        # distribute(tree.root, tree, transform_and=False)
         distribute(tree.root, tree, transform_and=False)
 
         return tree.root
@@ -413,4 +415,4 @@ if __name__ == '__main__':
     print color_brackets(str(clause_form(test_1, False)))
     test_2 =  u'∀x[P (x) ⇔ (Q(x) ∧ ∃y[Q(y) ∧ R(y, x))]]'
     print 'Running test case two'
-    print color_brackets(str(clause_form(test_2, True)))
+    print color_brackets(str(clause_form(test_2, False)))
