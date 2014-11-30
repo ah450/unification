@@ -322,6 +322,12 @@ def distribute(node, tree, transform_and):
             else:
                 replace_node(node, new_node)
             node = new_node
+            distribute(node, tree, transform_and)
+        else:
+            if node.lhs is not None:
+                distribute(node.lhs, tree, transform_and)
+            if node.rhs is not None:
+                distribute(node.rhs, tree, transform_and)
     elif isinstance(node, And):
         if isinstance(node.rhs, Or):
             or_node = node.rhs
@@ -351,11 +357,20 @@ def distribute(node, tree, transform_and):
             else:
                 replace_node(node, new_node)
             node = new_node
-    if isinstance(node, Node):
+            distribute(node, tree, transform_and)
+        else:
+            if node.lhs is not None:
+                distribute(node.lhs, tree, transform_and)
+            if node.rhs is not None:
+                distribute(node.rhs, tree, transform_and)
+    elif isinstance(node, Node):
         if node.lhs is not None:
             distribute(node.lhs, tree, transform_and)
         if node.rhs is not None:
             distribute(node.rhs, tree, transform_and)
+
+
+
 
 def clause_form(in_string, trace=False):
     parser = Parser()
