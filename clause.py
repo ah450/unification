@@ -65,7 +65,7 @@ def make_parent_of_children(node):
     if node.rhs is not None:
         node.rhs.parent = node
         
-def equiv_elimination_helper(node):
+def equiv_elimination(node, tree):
     if isinstance(node, Equivalence):
         logging.info("Eliminating {0}".format(node))
         lhs = Implication(copy.deepcopy(node.lhs), copy.deepcopy(node.rhs))
@@ -74,31 +74,22 @@ def equiv_elimination_helper(node):
         make_parent_of_children(rhs)
         new_node = And(lhs, rhs)
         make_parent_of_children(new_node)
-        replace_node(node, new_node)
         logging.info("Replaced with {0}".format(new_node))
+        if node.parent is not None:
+            replace_node(node, new_node)
+        else:
+            tree.root = new_node
+            new_node.parent = None
         node = new_node
     if isinstance(node, Node):
         if node.lhs is not None:
-            equiv_elimination_helper(node.lhs)    
+            equiv_elimination(node.lhs, tree)    
         if node.rhs is not None:
-            equiv_elimination_helper(node.rhs)
-
-def equiv_elimination(tree):
-    if isinstance(tree.root, Equivalence):
-        # Handle root
-        logging.info("Eliminating {0}".format(tree.root))
-        lhs = Implication(copy.deepcopy(tree.root.lhs), copy.deepcopy(tree.root.rhs))
-        make_parent_of_children(lhs)
-        rhs = Implication(tree.root.rhs, tree.root.lhs)
-        make_parent_of_children(rhs)
-        new_root = And(lhs, rhs)
-        make_parent_of_children(new_root)
-        tree.root = new_root
-        logging.info("Replaced with {0}".format(new_root))
-    equiv_elimination_helper(tree.root)    
+            equiv_elimination(node.rhs, tree)
+  
 
 
-def implic_elimination_helper(node):
+def implic_elimination(node, tree):
     if isinstance(node, Implication):
         # Eliminate
         logging.info("Eliminating {0}".format(node))
@@ -106,38 +97,32 @@ def implic_elimination_helper(node):
         make_parent_of_children(lhs)
         new_node = Or(lhs, node.rhs)
         make_parent_of_children(new_node)
-        replace_node(node, new_node)
         logging.info("Replaced with {0}".format(new_node))
+        if node.parent is not None:
+            replace_node(node, new_node)
+        else:
+            tree.root = new_node
+            new_node.parent = None        
         node = new_node
     if isinstance(node, Node):
         if node.lhs is not None:
-            implic_elimination_helper(node.lhs)    
+            implic_elimination(node.lhs, tree)    
         if node.rhs is not None:
-            implic_elimination_helper(node.rhs)
-
-def implic_elimination(tree):
-    if isinstance(tree.root, Implication):
-        # Handle root
-        logging.info("Eliminating {0}".format(tree.root))
-        lhs = Not(tree.root.lhs)
-        make_parent_of_children(lhs)
-        new_root = Or(lhs, tree.root.rhs)
-        make_parent_of_children(new_root)
-        tree.root = new_root
-        logging.info("Replaced with {0}".format(new_root))
-
-    implic_elimination_helper(tree.root)
+            implic_elimination(node.rhs, tree)
 
 
-
-def push_negation_helper(node):
+def push_negation(node, tree):
     if isinstance(node, Not):
         logging.info("Attempting to push Not {0}".format(node))
         if isinstance(node.lhs, Not):
             logging.info("Simplifying not not")
             # Not not case
             new_node = node.lhs.lhs
-            replace_node(node, new_node)
+            if node.parent is not None:
+                replace_node(node, new_node)
+            else:
+                tree.root = new_node
+                new_node.parent = None
             logging.info("Replaced with {0}".format(new_node))
             node = new_node
         elif isinstance(node.lhs, And):
@@ -148,7 +133,11 @@ def push_negation_helper(node):
             make_parent_of_children(rhs)
             new_node = Or(lhs, rhs)
             make_parent_of_children(new_node)
-            replace_node(node, new_node)
+            if node.parent is not None:
+                replace_node(node, new_node)
+            else:
+                new_node.parent = None
+                tree.root = new_node
             logging.info("Replaced with {0}".format(new_node))
             node = new_node
         elif isinstance(node.lhs, Or):
@@ -160,7 +149,11 @@ def push_negation_helper(node):
             make_parent_of_children(rhs)
             new_node = And(lhs, rhs)
             make_parent_of_children(new_node)
-            replace_node(node, new_node)
+            if node.parent is not None:
+                replace_node(node, new_node)
+            else:
+                tree.root = new_node
+                new_node.parent = None
             logging.info("Replaced with {0}".format(new_node))
             node = new_node
         elif isinstance(node.lhs, Exists):
@@ -170,7 +163,11 @@ def push_negation_helper(node):
             make_parent_of_children(formula)
             new_node = ForAll(node.lhs.var_list, formula)
             make_parent_of_children(new_node)
-            replace_node(node, new_node)
+            if node.parent is not None:
+                replace_node(node, new_node)
+            else:
+                tree.root = new_node
+                new_node.parent = None
             logging.info("Replaced with {0}".format(new_node))
             node = new_node
         elif isinstance(node.lhs, ForAll):
@@ -180,77 +177,20 @@ def push_negation_helper(node):
             make_parent_of_children(formula)
             new_node = Exists(node.lhs.var_list, formula)
             make_parent_of_children(new_node)
-            replace_node(node, new_node)
+            if node.parent is not None:
+                replace_node(node, new_node)
+            else:
+                tree.root = new_node
+                new_node.parent = None
             logging.info("Replaced with {0}".format(new_node))
             node = new_node
         else:
             logging.info("Can not push negation any further")
     if isinstance(node, Node):
         if node.lhs is not None:
-            push_negation_helper(node.lhs)    
+            push_negation(node.lhs, tree)    
         if node.rhs is not None:
-            push_negation_helper(node.rhs)
-
-def push_negation(tree):
-    if isinstance(tree.root, Not):
-        node = tree.root
-        if isinstance(node, Not):
-            logging.info("Attempting to push Not {0}".format(node))
-            if isinstance(node.lhs, Not):
-                logging.info("Simplifying not not")
-                # Not not case
-                new_node = node.lhs.lhs
-                replace_node(node, new_node)
-                logging.info("Replaced with {0}".format(new_node))
-                node = new_node
-            elif isinstance(node.lhs, And):
-                logging.info("Converting not conjuction to disjunction of negation")
-                lhs = Not(node.lhs.lhs)
-                make_parent_of_children(lhs)
-                rhs = Not(node.lhs.rhs)
-                make_parent_of_children(rhs)
-                new_node = Or(lhs, rhs)
-                make_parent_of_children(new_node)
-                replace_node(node, new_node)
-                logging.info("Replaced with {0}".format(new_node))
-                node = new_node
-            elif isinstance(node.lhs, Or):
-                logging.info("Converting not disjunction to conjuction of negation")
-                # convert to conjuction of negation
-                lhs = Not(node.lhs.lhs)
-                make_parent_of_children(lhs)
-                rhs = Not(node.lhs.rhs)
-                make_parent_of_children(rhs)
-                new_node = And(lhs, rhs)
-                make_parent_of_children(new_node)
-                replace_node(node, new_node)
-                logging.info("Replaced with {0}".format(new_node))
-                node = new_node
-            elif isinstance(node.lhs, Exists):
-                logging.info("Converting not there exists to for all not")
-                # convert to for all not
-                formula = Not(node.lhs.lhs)
-                make_parent_of_children(formula)
-                new_node = ForAll(node.lhs.var_list, formula)
-                make_parent_of_children(new_node)
-                replace_node(node, new_node)
-                logging.info("Replaced with {0}".format(new_node))
-                node = new_node
-            elif isinstance(node.lhs, ForAll):
-                logging.info("Converting not for all to there exists not")
-                # Convert to exists not.
-                formula = Not(node.lhs.lhs)
-                make_parent_of_children(formula)
-                new_node = Exists(node.lhs.var_list, formula)
-                make_parent_of_children(new_node)
-                replace_node(node, new_node)
-                logging.info("Replaced with {0}".format(new_node))
-                node = new_node
-            else:
-                logging.info("Can not push negation any further")
-            tree.root = node
-    push_negation_helper(tree.root) 
-
+            push_negation(node.rhs, tree)
 
 def rename_vars(node, subst):
     if isinstance(node, Term):
@@ -342,11 +282,11 @@ def clause_form(in_string, trace=False):
         logging.getLogger().setLevel(logging.INFO)
     if tree is not None:
         logging.info("Eliminating equivalence")
-        equiv_elimination(tree)
+        equiv_elimination(tree.root, tree)
         logging.info("Eliminating implication")
-        implic_elimination(tree)
+        implic_elimination(tree.root, tree)
         logging.info("Pushing negation")
-        push_negation(tree)
+        push_negation(tree.root, tree)
         logging.info("Standarize Apart")
         standarize_apart(tree.root)
         logging.info("Skolemizing")
@@ -355,7 +295,6 @@ def clause_form(in_string, trace=False):
         discard_for_all(tree.root, tree)
         return tree.root
     
-
 
 if __name__ == '__main__':
     # ∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]

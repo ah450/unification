@@ -26,7 +26,7 @@ class Not(Node):
         super(Not, self).__init__(form, None)
 
     def __unicode__(self):
-        return u'\u00AC ( {0} )'.format(self.lhs)
+        return u'\u00AC{0}'.format(self.lhs)
 
 
 
