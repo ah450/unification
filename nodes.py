@@ -31,7 +31,7 @@ class And(Node):
 
     def __unicode__(self):
         if (isinstance(self.lhs, Node) and isinstance(self.rhs, Node) and
-            not (isinstance(self.lhs, Quantifier) or isinstance(self.rhs, Quantifier))):
+            not (isinstance(self.lhs, Quantifier) and isinstance(self.rhs, Quantifier))):
             return u'({0}) \u2227 ({1})'.format(self.lhs, self.rhs)
         else:
             return u'{0} \u2227 {1}'.format(self.lhs, self.rhs)
@@ -75,7 +75,11 @@ class Implication(Node):
         super(Implication, self).__init__(lhs, rhs)
 
     def __unicode__(self):
-        return u'({0}) \u21D2 ({1})'.format(self.lhs, self.rhs)
+        if (isinstance(self.lhs, Node) and isinstance(self.rhs, Node) and
+            not (isinstance(self.lhs, Quantifier) and isinstance(self.rhs, Quantifier))):
+            return u'({0}) \u21D2 ({1})'.format(self.lhs, self.rhs)
+        else:
+            return u'{0} \u21D2 {1}'.format(self.lhs, self.rhs)
 
 
 class Or(Node):
@@ -84,7 +88,11 @@ class Or(Node):
         super(Or, self).__init__(lhs, rhs)
 
     def __unicode__(self):
-        return u'({0}) \u2228 ({1})'.format(self.lhs, self.rhs)
+        if (isinstance(self.lhs, Node) and isinstance(self.rhs, Node) and
+            not (isinstance(self.lhs, Quantifier) and isinstance(self.rhs, Quantifier))):
+            return u'({0}) \u2228 ({1})'.format(self.lhs, self.rhs)
+        else:
+            return u'{0} \u2228 {1}'.format(self.lhs, self.rhs)
 
 
 class Equivalence(Node):
@@ -92,7 +100,11 @@ class Equivalence(Node):
         super(Equivalence, self).__init__(lhs, rhs)
 
     def __unicode__(self):
-        return u'({0}) \u21D4 ({1})'.format(self.lhs, self.rhs)   
+        if (isinstance(self.lhs, Node) and isinstance(self.rhs, Node) and
+            not (isinstance(self.lhs, Quantifier) and isinstance(self.rhs, Quantifier))):
+            return u'({0}) \u21D4 ({1})'.format(self.lhs, self.rhs)
+        else:
+            return u'{0} \u21D4 {1}'.format(self.lhs, self.rhs)   
 
 
 class Predicate(object):
