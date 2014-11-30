@@ -3,6 +3,9 @@ from nodes import (Equivalence, Implication, And, Node, Not, Or, Exists, ForAll,
     Term, Quantifier, symbol_table, Predicate, Func)
 import copy
 import logging
+from colorama import Fore, init
+
+
 
 class Enumerator(object):
 
@@ -67,14 +70,14 @@ def make_parent_of_children(node):
         
 def equiv_elimination(node, tree):
     if isinstance(node, Equivalence):
-        logging.info("Eliminating {0}".format(node))
+        logging.info("Eliminating {0}".format(color_brackets(str(node))))
         lhs = Implication(copy.deepcopy(node.lhs), copy.deepcopy(node.rhs))
         make_parent_of_children(lhs)
         rhs = Implication(node.rhs, node.lhs)
         make_parent_of_children(rhs)
         new_node = And(lhs, rhs)
         make_parent_of_children(new_node)
-        logging.info("Replaced with {0}".format(new_node))
+        logging.info("Replaced with {0}".format(color_brackets(str(new_node))))
         if node.parent is not None:
             replace_node(node, new_node)
         else:
@@ -92,12 +95,12 @@ def equiv_elimination(node, tree):
 def implic_elimination(node, tree):
     if isinstance(node, Implication):
         # Eliminate
-        logging.info("Eliminating {0}".format(node))
+        logging.info("Eliminating {0}".format(color_brackets(str(node))))
         lhs = Not(node.lhs)
         make_parent_of_children(lhs)
         new_node = Or(lhs, node.rhs)
         make_parent_of_children(new_node)
-        logging.info("Replaced with {0}".format(new_node))
+        logging.info("Replaced with {0}".format(color_brackets(str(new_node))))
         if node.parent is not None:
             replace_node(node, new_node)
         else:
@@ -113,7 +116,7 @@ def implic_elimination(node, tree):
 
 def push_negation(node, tree):
     if isinstance(node, Not):
-        logging.info("Attempting to push Not {0}".format(node))
+        logging.info("Attempting to push Not {0}".format(color_brackets(str(node))))
         if isinstance(node.lhs, Not):
             logging.info("Simplifying not not")
             # Not not case
@@ -123,7 +126,7 @@ def push_negation(node, tree):
             else:
                 tree.root = new_node
                 new_node.parent = None
-            logging.info("Replaced with {0}".format(new_node))
+            logging.info("Replaced with {0}".format(color_brackets(str(new_node))))
             node = new_node
         elif isinstance(node.lhs, And):
             logging.info("Converting not conjuction to disjunction of negation")
@@ -138,7 +141,7 @@ def push_negation(node, tree):
             else:
                 new_node.parent = None
                 tree.root = new_node
-            logging.info("Replaced with {0}".format(new_node))
+            logging.info("Replaced with {0}".format(color_brackets(str(new_node))))
             node = new_node
         elif isinstance(node.lhs, Or):
             logging.info("Converting not disjunction to conjuction of negation")
@@ -154,7 +157,7 @@ def push_negation(node, tree):
             else:
                 tree.root = new_node
                 new_node.parent = None
-            logging.info("Replaced with {0}".format(new_node))
+            logging.info("Replaced with {0}".format(color_brackets(str(new_node))))
             node = new_node
         elif isinstance(node.lhs, Exists):
             logging.info("Converting not there exists to for all not")
@@ -168,7 +171,7 @@ def push_negation(node, tree):
             else:
                 tree.root = new_node
                 new_node.parent = None
-            logging.info("Replaced with {0}".format(new_node))
+            logging.info("Replaced with {0}".format(color_brackets(str(new_node))))
             node = new_node
         elif isinstance(node.lhs, ForAll):
             logging.info("Converting not for all to there exists not")
@@ -182,7 +185,7 @@ def push_negation(node, tree):
             else:
                 tree.root = new_node
                 new_node.parent = None
-            logging.info("Replaced with {0}".format(new_node))
+            logging.info("Replaced with {0}".format(color_brackets(str(new_node))))
             node = new_node
         else:
             logging.info("Can not push negation any further")
@@ -207,8 +210,8 @@ def rename_vars(node, subst):
         for term in node.var_list:
             if subst.has_key(term.name):
                 subst[term.name] = enumerator.get_token()
-                logging.info("Will replace {0} with {1}".format(term.name,
-                            subst[term.name]))
+                logging.info("Will replace {0} with {1}".format(color_brackets(str(term.name)),
+                            color_brackets(str(subst[term.name]))))
         node.var_list = [Term(subst.get(term.name, term.name)) for term in node.var_list]
     if isinstance(node, Node):
         if node.lhs is not None:
@@ -272,6 +275,70 @@ def discard_for_all(node, tree):
         if node.rhs is not None:
             discard_for_all(node.rhs, tree)
 
+def distribute(node, tree, transform_and):
+    if isinstance(node, Or):
+        if isinstance(node.rhs, And):
+            and_node = node.rhs
+            lhs = Or(node.lhs, and_node.lhs)
+            make_parent_of_children(lhs)
+            rhs = Or(node.lhs, and_node.rhs)
+            make_parent_of_children(rhs)
+            new_node = And(lhs, rhs)
+            make_parent_of_children(new_node)
+            if node.parent is None:
+                tree.root = new_node
+                new_node.parent = None
+            else:
+                replace_node(node, new_node)
+            node = new_node
+        elif isinstance(node.lhs, And) and transform_and:
+            and_node = node.lhs
+            lhs = Or(node.rhs, and_node.lhs)
+            make_parent_of_children(lhs)
+            rhs = Or(node.rhs, and_node.rhs)
+            make_parent_of_children(rhs)
+            new_node = And(lhs, rhs)
+            make_parent_of_children(new_node)
+            if node.parent is None:
+                tree.root = new_node
+                new_node.parent = None
+            else:
+                replace_node(node, new_node)
+            node = new_node
+    elif isinstance(node, And):
+        if isinstance(node.rhs, Or):
+            or_node = node.rhs
+            lhs = And(node.lhs, or_node.lhs)
+            make_parent_of_children(lhs)
+            rhs = And(node.lhs, or_node.rhs)
+            make_parent_of_children(rhs)
+            new_node = Or(lhs, rhs)
+            make_parent_of_children(new_node)
+            if node.parent is None:
+                tree.root = new_node
+                new_node.parent = None
+            else:
+                replace_node(node, new_node)
+            node = new_node
+        elif isinstance(node.lhs, Or):
+            or_node = node.lhs
+            lhs = And(node.rhs, or_node.lhs)
+            make_parent_of_children(lhs)
+            rhs = And(node.rhs, or_node.rhs)
+            make_parent_of_children(rhs)
+            new_node = Or(lhs, rhs)
+            make_parent_of_children(new_node)
+            if node.parent is None:
+                tree.root = new_node
+                new_node.parent = None
+            else:
+                replace_node(node, new_node)
+            node = new_node
+    if isinstance(node, Node):
+        if node.lhs is not None:
+            distribute(node.lhs, tree, transform_and)
+        if node.rhs is not None:
+            distribute(node.rhs, tree, transform_and)
 
 def clause_form(in_string, trace=False):
     parser = Parser()
@@ -293,14 +360,38 @@ def clause_form(in_string, trace=False):
         skolemize(tree.root, set(), dict(), tree)
         logging.info("Discarding ForAll quantifiers")
         discard_for_all(tree.root, tree)
+        logging.info("Distributing ands and ors")
+        distribute(tree.root, tree, transform_and=True)
+        distribute(tree.root, tree, transform_and=False)
+
         return tree.root
     
 
+
+def color_brackets(text):
+    ts  = []
+    colors = [Fore.GREEN, Fore.RED, Fore.YELLOW, Fore.MAGENTA]
+    color_i = 0
+    for c in text.decode('utf-8'):
+        if c == '(' or c == '[':
+            ts.append(colors[color_i])
+            color_i = (color_i + 1) % len(colors)
+            ts.append(c)
+        elif c == ')' or c == ']':
+            color_i = (color_i - 1) % len(colors)
+            ts.append(colors[color_i])
+            ts.append(c)
+        else:
+            ts.append(Fore.WHITE)
+            ts.append(c)
+    return u"".join(ts).encode('utf-8')
+
 if __name__ == '__main__':
     # ∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]
+    init(autoreset=True)
     test_1 = u'∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]'
     print 'Running test case one'
-    print clause_form(test_1)
+    print color_brackets(str(clause_form(test_1)))
     test_2 =  u'∀x[P (x) ⇔ (Q(x) ∧ ∃y[Q(y) ∧ R(y, x))]]'
     print 'Running test case two'
-    print clause_form(test_2)
+    print color_brackets(str(clause_form(test_2, True)))
