@@ -401,7 +401,6 @@ def clause_form(in_string, trace=False):
         logging.info("Discarding ForAll quantifiers")
         discard_for_all(tree.root, tree)
         logging.info("Distributing ands and ors")
-        # distribute(tree.root, tree, transform_and=False)
         distribute(tree.root, tree, transform_and=False)
 
         return tree.root
