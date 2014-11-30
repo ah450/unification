@@ -238,9 +238,10 @@ def rename_vars(node, subst):
 def standarize_apart(node):
     if isinstance(node, Quantifier):
         subst = {}
-        for name in [t.name for t in node.var_list]:
-            subst[name] = enumerator.get_token()
-            logging.info("Will replace var {0} with {1}".format(name, subst[name]))
+        for t in node.var_list:
+            subst[t.name] = enumerator.get_token()
+            logging.info("Will replace var {0} with {1}".format(t.name, subst[t.name]))
+            t.name = subst[t.name]
         rename_vars(node.lhs, subst)
     elif isinstance(node, Node):
         if node.lhs is not None:
