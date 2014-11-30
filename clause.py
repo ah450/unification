@@ -45,7 +45,23 @@ class Enumerator(object):
 
 enumerator = Enumerator()
 
-
+def color_brackets(text):
+    ts  = []
+    colors = [Fore.GREEN, Fore.RED, Fore.YELLOW, Fore.MAGENTA]
+    color_i = 0
+    for c in text.decode('utf-8'):
+        if c == '(' or c == '[':
+            ts.append(colors[color_i])
+            color_i = (color_i + 1) % len(colors)
+            ts.append(c)
+        elif c == ')' or c == ']':
+            color_i = (color_i - 1) % len(colors)
+            ts.append(colors[color_i])
+            ts.append(c)
+        else:
+            ts.append(Fore.WHITE)
+            ts.append(c)
+    return u"".join(ts).encode('utf-8')
 
 
 class Tree(object):
@@ -372,25 +388,6 @@ def clause_form(in_string, trace=False):
 
         return tree.root
     
-
-
-def color_brackets(text):
-    ts  = []
-    colors = [Fore.GREEN, Fore.RED, Fore.YELLOW, Fore.MAGENTA]
-    color_i = 0
-    for c in text.decode('utf-8'):
-        if c == '(' or c == '[':
-            ts.append(colors[color_i])
-            color_i = (color_i + 1) % len(colors)
-            ts.append(c)
-        elif c == ')' or c == ']':
-            color_i = (color_i - 1) % len(colors)
-            ts.append(colors[color_i])
-            ts.append(c)
-        else:
-            ts.append(Fore.WHITE)
-            ts.append(c)
-    return u"".join(ts).encode('utf-8')
 
 if __name__ == '__main__':
     # ∃x[P (x) ∧ ∀x[Q(x) ⇒ ¬P (x)]]
